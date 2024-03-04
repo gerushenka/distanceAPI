@@ -40,7 +40,7 @@ public class CityController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<CityEntity> deleteCity(@PathVariable Long id) {
-        boolean deleted = cityService.deleteCity(id);
+        boolean deleted = cityService.deleteCityAndRelatedDistances(id);
         if (deleted) {
             return ResponseEntity.ok().build();
         } else {

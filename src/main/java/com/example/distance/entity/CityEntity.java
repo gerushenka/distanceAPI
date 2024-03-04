@@ -14,10 +14,10 @@ public class CityEntity {
     private double longitude;
 
 
-    @OneToMany(mappedBy = "city1")
+    @OneToMany(mappedBy = "city1", fetch = FetchType.LAZY) // Ленивая загрузка для distancesFrom
     private List<DistanceEntity> distancesFrom;
 
-    @OneToMany(mappedBy = "city2")
+    @OneToMany(mappedBy = "city2", fetch = FetchType.LAZY) // Ленивая загрузка для distancesTo
     private List<DistanceEntity> distancesTo;
 
 

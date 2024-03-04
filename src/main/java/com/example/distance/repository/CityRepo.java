@@ -8,4 +8,3 @@ import org.springframework.stereotype.Repository;
 public interface CityRepo extends CrudRepository<CityEntity, Long> {
     CityEntity findByName(String name);
 }
-//ПАСТАВИТЬ САНАР И ГИТХАБ ИЩО ВТОРУЮ ДОПУКАТЬ И КОРОЧЕ СДЕЛАТЬ ЕЩЁ ОДНУ ТАБЛИЦУ ГДЕ ЕБАШУ ГАРАДА И РАССТОЯНИЯ

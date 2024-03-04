@@ -10,11 +10,11 @@ public class DistanceEntity {
 
     private double distance;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Ленивая загрузка для city1
     @JoinColumn(name = "city1")
     private CityEntity city1;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Ленивая загрузка для city2
     @JoinColumn(name = "city2")
     private CityEntity city2;
 
