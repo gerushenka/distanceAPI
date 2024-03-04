@@ -1,9 +1,8 @@
 package com.example.distance.controller;
 
-import com.example.distance.repository.CityRepo;
+import com.example.distance.entity.CityEntity;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -20,25 +19,26 @@ import java.text.DecimalFormat;
 public class DistanceController {
 
 
+
+
     @Value("${geoname.api-key}")
     private String apiKey;
 
     private final RestTemplate restTemplate;
     private final DistanceService distanceService;
+    private final CityService cityService;
 
-    public DistanceController(RestTemplate restTemplate, DistanceService distanceService) {
+    public DistanceController(RestTemplate restTemplate, DistanceService distanceService, CityService cityService) {
         this.restTemplate = restTemplate;
         this.distanceService = distanceService;
+        this.cityService = cityService;
     }
 
     @GetMapping("/calculate")
-    public ResponseEntity calculateDistance(@RequestParam String city1, @RequestParam String city2) {
+    public ResponseEntity calculateDistance(@RequestParam String city1Name, @RequestParam String city2Name) {
 
-        // Получаем координаты каждого города с помощью GeoNames API
-        String url1 = "http://api.geonames.org/searchJSON?q=" + city1 + "&maxRows=1&username=" + apiKey;
-        String url2 = "http://api.geonames.org/searchJSON?q=" + city2 + "&maxRows=1&username=" + apiKey;
-
-        // Отправляем GET-запросы к API GeoNames и получаем ответы в виде JSON
+        String url1 = "http://api.geonames.org/searchJSON?q=" + city1Name + "&maxRows=1&username=" + apiKey;
+        String url2 = "http://api.geonames.org/searchJSON?q=" + city2Name + "&maxRows=1&username=" + apiKey;
         String jsonResponse1 = restTemplate.getForObject(url1, String.class);
         String jsonResponse2 = restTemplate.getForObject(url2, String.class);
 
@@ -55,18 +55,16 @@ public class DistanceController {
             double lat2 = Double.parseDouble(node2.path(geonames).get(0).path("lat").asText());
             double lng2 = Double.parseDouble(node2.path(geonames).get(0).path("lng").asText());
 
-            distanceService.saveCity(city1, lat1, lng1);
-            distanceService.saveCity(city2, lat2, lng2);
+            CityEntity city1 = cityService.saveCity(city1Name, lat1, lng1);
+            CityEntity city2 = cityService.saveCity(city2Name, lat2, lng2);
 
-            // Вычисляем расстояние между двумя координатами
             double distance = distanceService.calculateDistance(lat1, lng1, lat2, lng2);
             DecimalFormat df = new DecimalFormat("#.##");
-
-            // Применение формата к переменной distance
+            distanceService.saveDistance(distance, city1, city2);
             String formattedDistance = df.format(distance);
             ObjectNode responseJson = objectMapper.createObjectNode();
-            responseJson.put("city1", city1);
-            responseJson.put("city2", city2);
+            responseJson.put("city1", city1Name);
+            responseJson.put("city2", city2Name);
             responseJson.put("distance_km", formattedDistance);
             return ResponseEntity.ok(responseJson);
         } catch (JsonProcessingException e) {

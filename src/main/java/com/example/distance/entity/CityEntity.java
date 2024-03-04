@@ -2,6 +2,8 @@ package com.example.distance.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class CityEntity {
     @Id
@@ -10,6 +12,14 @@ public class CityEntity {
     private String name;
     private double latitude;
     private double longitude;
+
+
+    @OneToMany(mappedBy = "city1")
+    private List<DistanceEntity> distancesFrom;
+
+    @OneToMany(mappedBy = "city2")
+    private List<DistanceEntity> distancesTo;
+
 
     public Long getId() {
         return id;

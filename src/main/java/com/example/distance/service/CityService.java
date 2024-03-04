@@ -4,6 +4,8 @@ import com.example.distance.entity.CityEntity;
 import com.example.distance.repository.CityRepo;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class CityService {
     private final CityRepo cityRepo;
@@ -16,10 +18,8 @@ public class CityService {
         CityEntity existingCity = cityRepo.findByName(name);
 
         if (existingCity != null) {
-            // Если город уже существует, возвращаем его без сохранения
             return existingCity;
         } else {
-            // Если город не существует, создаем новый объект города и сохраняем его
             CityEntity city = new CityEntity();
             city.setName(name);
             city.setLatitude(latitude);
@@ -27,5 +27,32 @@ public class CityService {
             return cityRepo.save(city);
         }
     }
+
+    public CityEntity createCity(CityEntity city) {
+        return cityRepo.save(city);
+    }
+
+    public Optional<CityEntity> getCityById(Long id) {
+        return cityRepo.findById(id);
+    }
+
+    public CityEntity updateCity(Long id, CityEntity updatedCity) {
+        if (cityRepo.existsById(id)) {
+            updatedCity.setId(id);
+            return cityRepo.save(updatedCity);
+        } else {
+            return null;
+        }
+    }
+
+    public boolean deleteCity(Long id) {
+        if (cityRepo.existsById(id)) {
+            cityRepo.deleteById(id);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
 }
