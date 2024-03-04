@@ -36,7 +36,6 @@ public class DistanceService {
         return distance;
     }
     public void saveCity(String cityName, double latitude, double longitude) {
-
-        CityEntity savedCity = cityService.saveCity(cityName, latitude, longitude);
+        cityService.saveCity(cityName, latitude, longitude);
     }
 }

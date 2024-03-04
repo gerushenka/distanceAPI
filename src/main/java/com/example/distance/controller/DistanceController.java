@@ -20,16 +20,13 @@ import java.text.DecimalFormat;
 public class DistanceController {
 
 
-    @Autowired
-    private CityRepo cityRepo;
-
     @Value("${geoname.api-key}")
     private String apiKey;
 
     private final RestTemplate restTemplate;
     private final DistanceService distanceService;
 
-    public DistanceController(RestTemplate restTemplate, DistanceService distanceService, CityService cityService) {
+    public DistanceController(RestTemplate restTemplate, DistanceService distanceService) {
         this.restTemplate = restTemplate;
         this.distanceService = distanceService;
     }
@@ -52,11 +49,11 @@ public class DistanceController {
             JsonNode node2 = objectMapper.readTree(jsonResponse2);
 
 
-            // Извлекаем координаты широты и долготы для каждого города
-            double lat1 = Double.parseDouble(node1.path("geonames").get(0).path("lat").asText());
-            double lng1 = Double.parseDouble(node1.path("geonames").get(0).path("lng").asText());
-            double lat2 = Double.parseDouble(node2.path("geonames").get(0).path("lat").asText());
-            double lng2 = Double.parseDouble(node2.path("geonames").get(0).path("lng").asText());
+            String geonames = "geonames";
+            double lat1 = Double.parseDouble(node1.path(geonames).get(0).path("lat").asText());
+            double lng1 = Double.parseDouble(node1.path(geonames).get(0).path("lng").asText());
+            double lat2 = Double.parseDouble(node2.path(geonames).get(0).path("lat").asText());
+            double lng2 = Double.parseDouble(node2.path(geonames).get(0).path("lng").asText());
 
             distanceService.saveCity(city1, lat1, lng1);
             distanceService.saveCity(city2, lat2, lng2);
