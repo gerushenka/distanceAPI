@@ -28,9 +28,8 @@ public class DistanceService {
 
         double a = Math.pow(Math.sin(deltaLat / 2), 2) + Math.cos(lat1Radians) * Math.cos(lat2Radians) * Math.pow(Math.sin(deltaLon / 2), 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = earthRadius * c;
 
-        return distance;
+        return earthRadius * c;
     }
 
     public DistanceEntity saveDistance(double distance, CityEntity city1, CityEntity city2) {
