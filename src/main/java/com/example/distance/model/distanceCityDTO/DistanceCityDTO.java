@@ -1,4 +1,6 @@
 package com.example.distance.model.distancecitydto;
+// file: src/main/java/com/example/distance/model/distancedto/DistanceCityDTO.java
+
 
 public class DistanceCityDTO {
     private Long id;
