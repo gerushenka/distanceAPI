@@ -1,4 +1,4 @@
-package com.example.distance.model.distanceCityDTO;
+package com.example.distance.model.distancecitydto;
 
 public class DistanceCityDTO {
     private Long id;

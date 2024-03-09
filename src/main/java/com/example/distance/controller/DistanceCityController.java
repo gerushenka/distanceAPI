@@ -1,7 +1,7 @@
 package com.example.distance.controller;
 
 
-import com.example.distance.model.distanceCityDTO.DistanceCityDTO;
+import com.example.distance.model.distancecitydto.DistanceCityDTO;
 import com.example.distance.service.DistanceCityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

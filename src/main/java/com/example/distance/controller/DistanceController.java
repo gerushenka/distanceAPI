@@ -2,7 +2,7 @@ package com.example.distance.controller;
 
 import com.example.distance.entity.CityEntity;
 import com.example.distance.entity.DistanceEntity;
-import com.example.distance.model.distanceDTO.DistanceDTO;
+import com.example.distance.model.distancedto.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;

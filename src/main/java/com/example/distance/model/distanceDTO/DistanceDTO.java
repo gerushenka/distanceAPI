@@ -1,4 +1,4 @@
-package com.example.distance.model.distanceDTO;
+package com.example.distance.model.distancedto;
 
 
 import java.util.List;
@@ -7,7 +7,7 @@ public class DistanceDTO {
     private Long id;
     private String city1;
     private String city2;
-    private List<String> cities; // Поле для списка городов
+    private List<String> cities;
     private double distance;
 
     public Long getId() {

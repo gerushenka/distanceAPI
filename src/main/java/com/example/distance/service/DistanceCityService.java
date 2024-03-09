@@ -1,7 +1,7 @@
 package com.example.distance.service;
 
 import com.example.distance.entity.DistanceCityEntity;
-import com.example.distance.model.distanceCityDTO.DistanceCityDTO;
+import com.example.distance.model.distancecitydto.DistanceCityDTO;
 import com.example.distance.repository.DistanceCityRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
