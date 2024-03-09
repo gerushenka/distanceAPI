@@ -1,11 +1,8 @@
 package com.example.distance.controller;
 
 
-import com.example.distance.entity.DistanceCityEntity;
 import com.example.distance.model.distanceCityDTO.DistanceCityDTO;
-import com.example.distance.repository.DistanceCityRepo;
 import com.example.distance.service.DistanceCityService;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,12 +13,8 @@ import java.util.Optional;
 @RequestMapping("/distance-cities")
 public class DistanceCityController {
     private final DistanceCityService distanceCityService;
-    private final ModelMapper modelMapper;
-    private final DistanceCityRepo distanceCityRepo;
-    public DistanceCityController(DistanceCityService distanceCityService, ModelMapper modelMapper, DistanceCityRepo distanceCityRepo) {
+    public DistanceCityController(DistanceCityService distanceCityService) {
         this.distanceCityService = distanceCityService;
-        this.modelMapper = modelMapper;
-        this.distanceCityRepo = distanceCityRepo;
     }
 
     @PostMapping
@@ -44,7 +37,7 @@ public class DistanceCityController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDistanceCity(@PathVariable Long id) {
+    public ResponseEntity<DistanceCityDTO> deleteDistanceCity(@PathVariable Long id) {
         boolean deleted = distanceCityService.deleteDistanceCity(id);
         return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
