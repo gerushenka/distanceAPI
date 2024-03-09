@@ -2,6 +2,8 @@ package com.example.distance.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class DistanceEntity {
     @Id
@@ -18,6 +20,9 @@ public class DistanceEntity {
     @JoinColumn(name = "city2")
     private CityEntity city2;
 
+
+    @OneToMany(mappedBy = "distance", cascade = CascadeType.ALL)
+    private List<DistanceCityEntity> distanceCityEntities;
 
     public Long getId() {
         return id;
@@ -50,5 +55,14 @@ public class DistanceEntity {
     public void setCity2(CityEntity city2) {
         this.city2 = city2;
     }
+
+    public List<DistanceCityEntity> getDistanceCityEntities() {
+        return distanceCityEntities;
+    }
+
+    public void setDistanceCityEntities(List<DistanceCityEntity> distanceCityEntities) {
+        this.distanceCityEntities = distanceCityEntities;
+    }
+
 }
 

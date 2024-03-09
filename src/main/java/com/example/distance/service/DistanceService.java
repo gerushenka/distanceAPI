@@ -1,7 +1,9 @@
 package com.example.distance.service;
 
 import com.example.distance.entity.CityEntity;
+import com.example.distance.entity.DistanceCityEntity;
 import com.example.distance.entity.DistanceEntity;
+import com.example.distance.repository.DistanceCityRepo;
 import com.example.distance.repository.DistanceRepo;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +12,9 @@ import java.util.Optional;
 @Service
 public class DistanceService {
     private final DistanceRepo distanceRepo;
-
-    public DistanceService(DistanceRepo distanceRepo) {
+    private final DistanceCityRepo distanceCityRepo;
+    public DistanceService(DistanceRepo distanceRepo, DistanceCityRepo distanceCityRepo) {
+        this.distanceCityRepo = distanceCityRepo;
         this.distanceRepo = distanceRepo;
     }
 
@@ -42,7 +45,47 @@ public class DistanceService {
             newDistance.setDistance(distance);
             newDistance.setCity1(city1);
             newDistance.setCity2(city2);
-            return distanceRepo.save(newDistance);
+            DistanceEntity savedDistance = distanceRepo.save(newDistance);
+
+            // Создаем связь с таблицей distance_city_entity для city1
+            DistanceCityEntity distanceCity1 = new DistanceCityEntity();
+            distanceCity1.setDistance(savedDistance);
+            distanceCity1.setCity(city1);
+            distanceCityRepo.save(distanceCity1);
+
+            // Создаем связь с таблицей distance_city_entity для city2
+            DistanceCityEntity distanceCity2 = new DistanceCityEntity();
+            distanceCity2.setDistance(savedDistance);
+            distanceCity2.setCity(city2);
+            distanceCityRepo.save(distanceCity2);
+
+            return savedDistance;
+        }
+    }
+
+    public Optional<DistanceEntity> getDistanceById(Long id) {
+        return distanceRepo.findById(id);
+    }
+
+    public DistanceEntity createDistance(DistanceEntity distanceEntity) {
+        return distanceRepo.save(distanceEntity);
+    }
+
+    public DistanceEntity updateDistance(Long id, DistanceEntity updatedDistance) {
+        if (distanceRepo.existsById(id)) {
+            updatedDistance.setId(id);
+            return distanceRepo.save(updatedDistance);
+        } else {
+            return null;
+        }
+    }
+
+    public boolean deleteDistance(Long id) {
+        if (distanceRepo.existsById(id)) {
+            distanceRepo.deleteById(id);
+            return true;
+        } else {
+            return false;
         }
     }
 }

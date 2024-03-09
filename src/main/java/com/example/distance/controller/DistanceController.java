@@ -1,6 +1,8 @@
 package com.example.distance.controller;
 
 import com.example.distance.entity.CityEntity;
+import com.example.distance.entity.DistanceEntity;
+import com.example.distance.model.distanceDTO.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.DecimalFormat;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/distance")
@@ -71,5 +74,71 @@ public class DistanceController {
             return ResponseEntity.badRequest().body("Ошибка при обработке JSON");
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DistanceDTO> getDistance(@PathVariable Long id) {
+        Optional<DistanceEntity> distanceEntityOptional = distanceService.getDistanceById(id);
+        if (distanceEntityOptional.isPresent()) {
+            DistanceEntity distanceEntity = distanceEntityOptional.get();
+            DistanceDTO distanceDTO = convertToDTO(distanceEntity);
+            return ResponseEntity.ok(distanceDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    private DistanceDTO convertToDTO(DistanceEntity distanceEntity) {
+        DistanceDTO dto = new DistanceDTO();
+        dto.setId(distanceEntity.getId());
+        dto.setDistance(distanceEntity.getDistance());
+
+        // Получаем объекты CityEntity по их идентификаторам
+        Optional<CityEntity> city1Optional = cityService.getCityById(distanceEntity.getCity1().getId());
+        Optional<CityEntity> city2Optional = cityService.getCityById(distanceEntity.getCity2().getId());
+
+        // Проверяем, существуют ли города
+        if (city1Optional.isPresent() && city2Optional.isPresent()) {
+            // Получаем названия городов из объектов CityEntity
+            String city1Name = city1Optional.get().getName();
+            String city2Name = city2Optional.get().getName();
+
+            // Устанавливаем названия городов в DTO
+            dto.setCity1(city1Name);
+            dto.setCity2(city2Name);
+        } else {
+            // Если города не найдены, можно сделать что-то другое, например, установить значения по умолчанию или бросить исключение
+            // В данном случае, я просто устанавливаю "Unknown" вместо названий городов
+            dto.setCity1("Unknown");
+            dto.setCity2("Unknown");
+        }
+
+        return dto;
+    }
+
+    @PostMapping
+    public ResponseEntity<DistanceEntity> createDistance(@RequestBody DistanceEntity distanceEntity) {
+        DistanceEntity createdDistance = distanceService.createDistance(distanceEntity);
+        return ResponseEntity.ok(createdDistance);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DistanceEntity> updateDistance(@PathVariable Long id, @RequestBody DistanceEntity distanceEntity) {
+        DistanceEntity updatedDistance = distanceService.updateDistance(id, distanceEntity);
+        if (updatedDistance != null) {
+            return ResponseEntity.ok(updatedDistance);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DistanceEntity> deleteDistance(@PathVariable Long id) {
+        boolean deleted = distanceService.deleteDistance(id);
+        if (deleted) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }

@@ -20,6 +20,8 @@ public class CityEntity {
     @OneToMany(mappedBy = "city2", fetch = FetchType.LAZY) // Ленивая загрузка для distancesTo
     private List<DistanceEntity> distancesTo;
 
+    @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
+    private List<DistanceCityEntity> distanceCityEntities;
 
     public Long getId() {
         return id;
@@ -51,5 +53,29 @@ public class CityEntity {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public List<DistanceEntity> getDistancesFrom() {
+        return distancesFrom;
+    }
+
+    public List<DistanceEntity> getDistancesTo() {
+        return distancesTo;
+    }
+
+    public List<DistanceCityEntity> getDistanceCityEntities() {
+        return distanceCityEntities;
+    }
+
+    public void setDistancesFrom(List<DistanceEntity> distancesFrom) {
+        this.distancesFrom = distancesFrom;
+    }
+
+    public void setDistancesTo(List<DistanceEntity> distancesTo) {
+        this.distancesTo = distancesTo;
+    }
+
+    public void setDistanceCityEntities(List<DistanceCityEntity> distanceCityEntities) {
+        this.distanceCityEntities = distanceCityEntities;
     }
 }
