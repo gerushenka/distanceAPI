@@ -60,7 +60,7 @@
 - **Получить информацию о расстоянии между городами из базы данных:**.
   
   ```http
-  GET /distance/calculate?city1Name=(первый_город)&city2Name=(второй_город)
+  GET /distance/calculate?cityFirst=(первый_город)&citySecond=(второй_город)
   ```
 
 
