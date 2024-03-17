@@ -1,6 +1,6 @@
 package com.example.distance.model.citydto;
 
-public class CityDTO {
+public class CityDataTransferObject {
     private Long id;
     private String name;
     private double latitude;

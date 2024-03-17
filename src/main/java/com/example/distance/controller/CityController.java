@@ -1,7 +1,7 @@
 package com.example.distance.controller;
 
 import com.example.distance.entity.City;
-import com.example.distance.model.citydto.CityDTO;
+import com.example.distance.model.citydto.CityDataTransferObject;
 import com.example.distance.service.CityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +19,18 @@ public class CityController {
     }
 
     @PostMapping
-    public ResponseEntity<CityDTO> createCity(@RequestBody CityDTO cityDTO) {
-        City createdCity = cityService.createCity(cityDTO);
-        CityDTO createdCityDTO = convertToDTO(createdCity);
-        return ResponseEntity.ok(createdCityDTO);
+    public ResponseEntity<CityDataTransferObject> createCity(@RequestBody CityDataTransferObject cityDataTransferObject) {
+        City createdCity = cityService.createCity(cityDataTransferObject);
+        CityDataTransferObject createdCityDataTransferObject = convertToDTO(createdCity);
+        return ResponseEntity.ok(createdCityDataTransferObject);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CityDTO> getCity(@PathVariable Long id) {
+    public ResponseEntity<CityDataTransferObject> getCity(@PathVariable Long id) {
         Optional<City> cityOptional = cityService.getCityById(id);
         if (cityOptional.isPresent()) {
-            CityDTO cityDTO = convertToDTO(cityOptional.get());
-            return ResponseEntity.ok(cityDTO);
+            CityDataTransferObject cityDataTransferObject = convertToDTO(cityOptional.get());
+            return ResponseEntity.ok(cityDataTransferObject);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -56,13 +56,13 @@ public class CityController {
         }
     }
 
-    private CityDTO convertToDTO(City city) {
-        CityDTO cityDTO = new CityDTO();
-        cityDTO.setId(city.getId());
-        cityDTO.setName(city.getName());
-        cityDTO.setLatitude(city.getLatitude());
-        cityDTO.setLongitude(city.getLongitude());
-        return cityDTO;
+    private CityDataTransferObject convertToDTO(City city) {
+        CityDataTransferObject cityDataTransferObject = new CityDataTransferObject();
+        cityDataTransferObject.setId(city.getId());
+        cityDataTransferObject.setName(city.getName());
+        cityDataTransferObject.setLatitude(city.getLatitude());
+        cityDataTransferObject.setLongitude(city.getLongitude());
+        return cityDataTransferObject;
     }
 
 

@@ -2,7 +2,7 @@ package com.example.distance.service;
 
 import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
-import com.example.distance.model.citydto.CityDTO;
+import com.example.distance.model.citydto.CityDataTransferObject;
 import com.example.distance.repository.CityRepository;
 import com.example.distance.repository.DistanceRepository;
 import org.springframework.stereotype.Service;
@@ -34,11 +34,11 @@ public class CityService {
         }
     }
 
-    public City createCity(CityDTO cityDTO) {
+    public City createCity(CityDataTransferObject cityDataTransferObject) {
         City city = new City();
-        city.setName(cityDTO.getName());
-        city.setLatitude(cityDTO.getLatitude());
-        city.setLongitude(cityDTO.getLongitude());
+        city.setName(cityDataTransferObject.getName());
+        city.setLatitude(cityDataTransferObject.getLatitude());
+        city.setLongitude(cityDataTransferObject.getLongitude());
         return cityRepository.save(city);
     }
 

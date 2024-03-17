@@ -11,9 +11,6 @@ public class City {
     private double latitude;
     private double longitude;
 
-
-
-
     public Long getId() {
         return id;
     }
