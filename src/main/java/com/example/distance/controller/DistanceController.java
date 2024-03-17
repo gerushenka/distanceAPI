@@ -1,10 +1,11 @@
 package com.example.distance.controller;
 
-import com.example.distance.entity.CityEntity;
-import com.example.distance.entity.DistanceEntity;
-import com.example.distance.model.distancedto.DistanceDTO;
+import com.example.distance.entity.City;
+import com.example.distance.entity.Distance;
+import com.example.distance.model.dtodistance.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -15,14 +16,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/distance")
 public class DistanceController {
 
 
-
+    @Autowired
+    private Map<String, Double> distanceCache;
 
     @Value("${geoname.api-key}")
     private String apiKey;
@@ -38,10 +44,10 @@ public class DistanceController {
     }
 
     @GetMapping("/calculate")
-    public ResponseEntity calculateDistance(@RequestParam String city1Name, @RequestParam String city2Name) {
+    public ResponseEntity calculateDistance(@RequestParam String cityFirst, @RequestParam String citySecond) {
 
-        String url1 = "http://api.geonames.org/searchJSON?q=" + city1Name + "&maxRows=1&username=" + apiKey;
-        String url2 = "http://api.geonames.org/searchJSON?q=" + city2Name + "&maxRows=1&username=" + apiKey;
+        String url1 = "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
+        String url2 = "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
         String jsonResponse1 = restTemplate.getForObject(url1, String.class);
         String jsonResponse2 = restTemplate.getForObject(url2, String.class);
 
@@ -58,16 +64,16 @@ public class DistanceController {
             double lat2 = Double.parseDouble(node2.path(geonames).get(0).path("lat").asText());
             double lng2 = Double.parseDouble(node2.path(geonames).get(0).path("lng").asText());
 
-            CityEntity city1 = cityService.saveCity(city1Name, lat1, lng1);
-            CityEntity city2 = cityService.saveCity(city2Name, lat2, lng2);
+            City city1 = cityService.saveCity(cityFirst, lat1, lng1);
+            City city2 = cityService.saveCity(citySecond, lat2, lng2);
 
             double distance = distanceService.calculateDistance(lat1, lng1, lat2, lng2);
             DecimalFormat df = new DecimalFormat("#.##");
             distanceService.saveDistance(distance, city1, city2);
             String formattedDistance = df.format(distance);
             ObjectNode responseJson = objectMapper.createObjectNode();
-            responseJson.put("city1", city1Name);
-            responseJson.put("city2", city2Name);
+            responseJson.put("cityFirst", cityFirst);
+            responseJson.put("citySecond", citySecond);
             responseJson.put("distance_km", formattedDistance);
             return ResponseEntity.ok(responseJson);
         } catch (JsonProcessingException e) {
@@ -77,52 +83,48 @@ public class DistanceController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DistanceDTO> getDistance(@PathVariable Long id) {
-        Optional<DistanceEntity> distanceEntityOptional = distanceService.getDistanceById(id);
+        Optional<Distance> distanceEntityOptional = distanceService.getDistanceById(id);
         if (distanceEntityOptional.isPresent()) {
-            DistanceEntity distanceEntity = distanceEntityOptional.get();
-            DistanceDTO distanceDTO = convertToDTO(distanceEntity);
+            Distance distance = distanceEntityOptional.get();
+            DistanceDTO distanceDTO = convertToDTO(distance);
             return ResponseEntity.ok(distanceDTO);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
-    private DistanceDTO convertToDTO(DistanceEntity distanceEntity) {
+
+    private DistanceDTO convertToDTO(Distance distance) {
         DistanceDTO dto = new DistanceDTO();
-        dto.setId(distanceEntity.getId());
-        dto.setDistance(distanceEntity.getDistance());
+        dto.setId(distance.getId());
+        dto.setDistance(distance.getDistance());
 
-        // Получаем объекты CityEntity по их идентификаторам
-        Optional<CityEntity> city1Optional = cityService.getCityById(distanceEntity.getCity1().getId());
-        Optional<CityEntity> city2Optional = cityService.getCityById(distanceEntity.getCity2().getId());
+        Optional<City> cityFirstOptional = cityService.getCityById(distance.getCity1().getId());
+        Optional<City> citySecondOptional = cityService.getCityById(distance.getCity2().getId());
 
-        // Проверяем, существуют ли города
-        if (city1Optional.isPresent() && city2Optional.isPresent()) {
-            // Получаем названия городов из объектов CityEntity
-            String city1Name = city1Optional.get().getName();
-            String city2Name = city2Optional.get().getName();
+        if (cityFirstOptional.isPresent() && citySecondOptional.isPresent()) {
+            String cityFirst = cityFirstOptional.get().getName();
+            String citySecond = citySecondOptional.get().getName();
 
-            // Устанавливаем названия городов в DTO
-            dto.setCity1(city1Name);
-            dto.setCity2(city2Name);
+            dto.setCityFirst(cityFirst);
+            dto.setCitySecond(citySecond);
         } else {
-            // Если города не найдены, можно сделать что-то другое, например, установить значения по умолчанию или бросить исключение
-            // В данном случае, я просто устанавливаю "Unknown" вместо названий городов
-            dto.setCity1("Unknown");
-            dto.setCity2("Unknown");
+
+            dto.setCityFirst("Unknown");
+            dto.setCitySecond("Unknown");
         }
 
         return dto;
     }
 
     @PostMapping
-    public ResponseEntity<DistanceEntity> createDistance(@RequestBody DistanceEntity distanceEntity) {
-        DistanceEntity createdDistance = distanceService.createDistance(distanceEntity);
+    public ResponseEntity<Distance> createDistance(@RequestBody Distance distance) {
+        Distance createdDistance = distanceService.createDistance(distance);
         return ResponseEntity.ok(createdDistance);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DistanceEntity> updateDistance(@PathVariable Long id, @RequestBody DistanceEntity distanceEntity) {
-        DistanceEntity updatedDistance = distanceService.updateDistance(id, distanceEntity);
+    public ResponseEntity<Distance> updateDistance(@PathVariable Long id, @RequestBody Distance distance) {
+        Distance updatedDistance = distanceService.updateDistance(id, distance);
         if (updatedDistance != null) {
             return ResponseEntity.ok(updatedDistance);
         } else {
@@ -131,7 +133,7 @@ public class DistanceController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<DistanceEntity> deleteDistance(@PathVariable Long id) {
+    public ResponseEntity<Distance> deleteDistance(@PathVariable Long id) {
         boolean deleted = distanceService.deleteDistance(id);
         if (deleted) {
             return ResponseEntity.ok().build();
@@ -140,5 +142,55 @@ public class DistanceController {
         }
     }
 
+    @GetMapping("/useful")
+    public ResponseEntity<List<DistanceDTO>> getDistancesByCityNames(@RequestParam List<String> cityFirstList, @RequestParam List<String> citySecondList) {
+        if (cityFirstList.size() != citySecondList.size()) {
+            // Обработка ситуации, когда списки городов разной длины
+            return ResponseEntity.badRequest().build();
+        }
 
+        List<DistanceDTO> result = new ArrayList<>();
+
+        for (int i = 0; i < cityFirstList.size(); i++) {
+            String cityFirst = cityFirstList.get(i);
+            String citySecond = citySecondList.get(i);
+            String key = generateCacheKey(cityFirst, citySecond);
+
+            if (distanceCache.containsKey(key)) {
+                // Если расстояние уже кэшировано, возвращаем его из кэша
+                double distance = distanceCache.get(key);
+                DistanceDTO dto = new DistanceDTO();
+                dto.setCityFirst(cityFirst);
+                dto.setCitySecond(citySecond);
+                dto.setDistance(distance);
+                result.add(dto);
+            } else {
+                List<Distance> distances = distanceService.getDistancesByCityNames(cityFirst, citySecond);
+                List<DistanceDTO> distanceDTOs = distances.stream()
+                        .map(this::convertToDTO)
+                        .collect(Collectors.toList());
+
+                if (!distances.isEmpty()) {
+                    double distance = distances.get(0).getDistance();
+                    distanceCache.put(key, distance);
+                }
+
+                result.addAll(distanceDTOs);
+            }
+        }
+
+        viewCacheContents();
+
+        return ResponseEntity.ok(result);
+    }
+
+
+    private String generateCacheKey(String cityFirst, String citySecond) {
+        return cityFirst + "_" + citySecond;
+    }
+
+    public void viewCacheContents() {
+        System.out.println("Cache Contents:");
+        distanceCache.forEach((key, value) -> System.out.println(key + " : " + value));
+    }
 }

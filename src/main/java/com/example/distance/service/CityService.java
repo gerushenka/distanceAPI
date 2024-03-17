@@ -1,11 +1,10 @@
 package com.example.distance.service;
 
-import com.example.distance.entity.CityEntity;
-import com.example.distance.entity.DistanceCityEntity;
-import com.example.distance.entity.DistanceEntity;
-import com.example.distance.repository.CityRepo;
-import com.example.distance.repository.DistanceCityRepo;
-import com.example.distance.repository.DistanceRepo;
+import com.example.distance.entity.City;
+import com.example.distance.entity.Distance;
+import com.example.distance.model.dtocity.CityDTO;
+import com.example.distance.repository.CityRepository;
+import com.example.distance.repository.DistanceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,60 +12,58 @@ import java.util.Optional;
 
 @Service
 public class CityService {
-    private final CityRepo cityRepo;
-    private final DistanceRepo distanceRepo;
-    private final DistanceCityRepo distanceCityRepo;
-    public CityService(CityRepo cityRepo, DistanceRepo distanceRepo, DistanceCityRepo distanceCityRepo) {
+    private final CityRepository cityRepository;
+    private final DistanceRepository distanceRepository;
+    public CityService(CityRepository cityRepository, DistanceRepository distanceRepository) {
 
-        this.cityRepo = cityRepo;
-        this.distanceRepo = distanceRepo;
-        this.distanceCityRepo = distanceCityRepo;
+        this.cityRepository = cityRepository;
+        this.distanceRepository = distanceRepository;
     }
 
-    public CityEntity saveCity(String name, double latitude, double longitude) {
-        CityEntity existingCity = cityRepo.findByName(name);
+    public City saveCity(String name, double latitude, double longitude) {
+        City existingCity = cityRepository.findByName(name);
 
         if (existingCity != null) {
             return existingCity;
         } else {
-            CityEntity city = new CityEntity();
+            City city = new City();
             city.setName(name);
             city.setLatitude(latitude);
             city.setLongitude(longitude);
-            return cityRepo.save(city);
+            return cityRepository.save(city);
         }
     }
 
-    public CityEntity createCity(CityEntity city) {
-        return cityRepo.save(city);
+    public City createCity(CityDTO cityDTO) {
+        City city = new City();
+        city.setName(cityDTO.getName());
+        city.setLatitude(cityDTO.getLatitude());
+        city.setLongitude(cityDTO.getLongitude());
+        return cityRepository.save(city);
     }
 
-    public Optional<CityEntity> getCityById(Long id) {
-        return cityRepo.findById(id);
+    public Optional<City> getCityById(Long id) {
+        return cityRepository.findById(id);
     }
 
-    public CityEntity updateCity(Long id, CityEntity updatedCity) {
-        if (cityRepo.existsById(id)) {
+    public City updateCity(Long id, City updatedCity) {
+        if (cityRepository.existsById(id)) {
             updatedCity.setId(id);
-            return cityRepo.save(updatedCity);
+            return cityRepository.save(updatedCity);
         } else {
             return null;
         }
     }
 
     public boolean deleteCityAndRelatedDistances(Long id) {
-        Optional<CityEntity> cityEntityOptional = cityRepo.findById(id);
+        Optional<City> cityEntityOptional = cityRepository.findById(id);
         if (cityEntityOptional.isPresent()) {
-            CityEntity city = cityEntityOptional.get();
-            List<DistanceEntity> relatedDistances = distanceRepo.findByCity1OrCity2(city, city);
-            distanceRepo.deleteAll(relatedDistances);
-            cityRepo.delete(city);
+            City city = cityEntityOptional.get();
+            List<Distance> relatedDistances = distanceRepository.findByCity1OrCity2(city, city);
+            distanceRepository.deleteAll(relatedDistances);
+            cityRepository.delete(city);
 
-            // Удаление связей с таблицей distance_city_entity
-            for (DistanceEntity distance : relatedDistances) {
-                List<DistanceCityEntity> distanceCityEntities = distance.getDistanceCityEntities();
-                distanceCityRepo.deleteAll(distanceCityEntities);
-            }
+
 
             return true;
         }
