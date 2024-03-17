@@ -2,7 +2,7 @@ package com.example.distance.controller;
 
 import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
-import com.example.distance.model.dtodistance.DistanceDTO;
+import com.example.distance.model.distancedto.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;

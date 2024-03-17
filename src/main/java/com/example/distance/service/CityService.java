@@ -2,7 +2,7 @@ package com.example.distance.service;
 
 import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
-import com.example.distance.model.dtocity.CityDTO;
+import com.example.distance.model.citydto.CityDTO;
 import com.example.distance.repository.CityRepository;
 import com.example.distance.repository.DistanceRepository;
 import org.springframework.stereotype.Service;
