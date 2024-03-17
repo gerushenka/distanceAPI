@@ -4,22 +4,22 @@ public class DistanceDTO {
     private Long id;
     private String cityFirst;
     private String citySecond;
-    private double distance;
+    private double cityDistance;
 
     public Long getId() {
         return id;
     }
 
-    public double getDistance() {
-        return distance;
+    public double getCityDistance() {
+        return cityDistance;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
-    public void setDistance(double distance) {
-        this.distance = distance;
+    public void setCityDistance(double distance) {
+        this.cityDistance = distance;
     }
 
     public String getCityFirst() {

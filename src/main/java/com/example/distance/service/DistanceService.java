@@ -37,13 +37,13 @@ public class DistanceService {
     }
 
     public Distance saveDistance(double distance, City city1, City city2) {
-        Optional<Distance> existingDistance = distanceRepository.findByDistance(distance);
+        Optional<Distance> existingDistance = distanceRepository.findByCityDistance(distance);
 
         if (existingDistance.isPresent()) {
             return existingDistance.get();
         } else {
             Distance newDistance = new Distance();
-            newDistance.setDistance(distance);
+            newDistance.setCityDistance(distance);
             newDistance.setCity1(city1);
             newDistance.setCity2(city2);
             return distanceRepository.save(newDistance);

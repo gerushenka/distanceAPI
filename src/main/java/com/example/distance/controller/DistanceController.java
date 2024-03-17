@@ -5,6 +5,8 @@ import com.example.distance.entity.Distance;
 import com.example.distance.model.dtodistance.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/distance")
 public class DistanceController {
-
 
     @Autowired
     private Map<String, Double> distanceCache;
@@ -36,6 +37,8 @@ public class DistanceController {
     private final RestTemplate restTemplate;
     private final DistanceService distanceService;
     private final CityService cityService;
+
+    private static final Logger logger = LoggerFactory.getLogger(DistanceController.class);
 
     public DistanceController(RestTemplate restTemplate, DistanceService distanceService, CityService cityService) {
         this.restTemplate = restTemplate;
@@ -96,7 +99,7 @@ public class DistanceController {
     private DistanceDTO convertToDTO(Distance distance) {
         DistanceDTO dto = new DistanceDTO();
         dto.setId(distance.getId());
-        dto.setDistance(distance.getDistance());
+        dto.setCityDistance(distance.getCityDistance());
 
         Optional<City> cityFirstOptional = cityService.getCityById(distance.getCity1().getId());
         Optional<City> citySecondOptional = cityService.getCityById(distance.getCity2().getId());
@@ -145,7 +148,6 @@ public class DistanceController {
     @GetMapping("/useful")
     public ResponseEntity<List<DistanceDTO>> getDistancesByCityNames(@RequestParam List<String> cityFirstList, @RequestParam List<String> citySecondList) {
         if (cityFirstList.size() != citySecondList.size()) {
-            // Обработка ситуации, когда списки городов разной длины
             return ResponseEntity.badRequest().build();
         }
 
@@ -156,30 +158,27 @@ public class DistanceController {
             String citySecond = citySecondList.get(i);
             String key = generateCacheKey(cityFirst, citySecond);
 
-            if (distanceCache.containsKey(key)) {
-                // Если расстояние уже кэшировано, возвращаем его из кэша
+            if (distanceCache != null && distanceCache.containsKey(key)) {
                 double distance = distanceCache.get(key);
                 DistanceDTO dto = new DistanceDTO();
                 dto.setCityFirst(cityFirst);
                 dto.setCitySecond(citySecond);
-                dto.setDistance(distance);
+                dto.setCityDistance(distance);
                 result.add(dto);
             } else {
                 List<Distance> distances = distanceService.getDistancesByCityNames(cityFirst, citySecond);
-                List<DistanceDTO> distanceDTOs = distances.stream()
-                        .map(this::convertToDTO)
-                        .collect(Collectors.toList());
-
                 if (!distances.isEmpty()) {
-                    double distance = distances.get(0).getDistance();
-                    distanceCache.put(key, distance);
+                    double distance = distances.get(0).getCityDistance();
+                    if (distanceCache != null) {
+                        distanceCache.put(key, distance);
+                    }
+                    viewCacheContents();
                 }
-
-                result.addAll(distanceDTOs);
+                result.addAll(distances.stream()
+                        .map(this::convertToDTO)
+                        .toList());
             }
         }
-
-        viewCacheContents();
 
         return ResponseEntity.ok(result);
     }
@@ -190,7 +189,8 @@ public class DistanceController {
     }
 
     public void viewCacheContents() {
-        System.out.println("Cache Contents:");
-        distanceCache.forEach((key, value) -> System.out.println(key + " : " + value));
+        logger.info("Cache Contents:");
+        distanceCache.forEach((key, value) -> logger.info(String.format("%s : %s", key, value)));
     }
+
 }

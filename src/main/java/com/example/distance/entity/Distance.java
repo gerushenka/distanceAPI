@@ -8,7 +8,8 @@ public class Distance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double distance;
+    @Column(name = "distance")
+    private double cityDistance;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city1")
@@ -24,10 +25,6 @@ public class Distance {
         return id;
     }
 
-    public double getDistance() {
-        return distance;
-    }
-
     public City getCity1() {
         return city1;
     }
@@ -40,10 +37,6 @@ public class Distance {
         this.id = id;
     }
 
-    public void setDistance(double distance) {
-        this.distance = distance;
-    }
-
     public void setCity1(City city1) {
         this.city1 = city1;
     }
@@ -52,6 +45,12 @@ public class Distance {
         this.city2 = city2;
     }
 
+    public double getCityDistance() {
+        return cityDistance;
+    }
 
+    public void setCityDistance(double cityDistance) {
+        this.cityDistance = cityDistance;
+    }
 }
 
