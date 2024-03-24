@@ -2,7 +2,7 @@ package com.example.distance.controller;
 
 import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
-import com.example.distance.model.distancedto.DistanceDTO;
+import com.example.distance.dto.DistanceDTO;
 import com.example.distance.service.CityService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
@@ -101,8 +101,8 @@ public class DistanceController {
         dto.setId(distance.getId());
         dto.setCityDistance(distance.getCityDistance());
 
-        Optional<City> cityFirstOptional = cityService.getCityById(distance.getCity1().getId());
-        Optional<City> citySecondOptional = cityService.getCityById(distance.getCity2().getId());
+        Optional<City> cityFirstOptional = cityService.getCityById(distance.getCityFirst().getId());
+        Optional<City> citySecondOptional = cityService.getCityById(distance.getCitySecond().getId());
 
         if (cityFirstOptional.isPresent() && citySecondOptional.isPresent()) {
             String cityFirst = cityFirstOptional.get().getName();
@@ -145,7 +145,7 @@ public class DistanceController {
         }
     }
 
-    @GetMapping("/useful")
+    @GetMapping("/city-to-city")
     public ResponseEntity<List<DistanceDTO>> getDistancesByCityNames(@RequestParam List<String> cityFirstList, @RequestParam List<String> citySecondList) {
         if (cityFirstList.size() != citySecondList.size()) {
             return ResponseEntity.badRequest().build();
@@ -159,6 +159,7 @@ public class DistanceController {
             String key = generateCacheKey(cityFirst, citySecond);
 
             if (distanceCache != null && distanceCache.containsKey(key)) {
+                // Distance is cached, return it directly
                 double distance = distanceCache.get(key);
                 DistanceDTO dto = new DistanceDTO();
                 dto.setCityFirst(cityFirst);
@@ -166,14 +167,19 @@ public class DistanceController {
                 dto.setCityDistance(distance);
                 result.add(dto);
             } else {
+                // Distance is not cached, query the database
                 List<Distance> distances = distanceService.getDistancesByCityNames(cityFirst, citySecond);
-                if (!distances.isEmpty()) {
-                    double distance = distances.get(0).getCityDistance();
-                    if (distanceCache != null) {
-                        distanceCache.put(key, distance);
-                    }
-                    viewCacheContents();
+
+                if (distances.isEmpty()) {
+                    // Distance not found in the database, calculate and save it
+                    City city1 = cityService.saveCity(cityFirst, 0, 0); // Assuming latitude and longitude are not provided
+                    City city2 = cityService.saveCity(citySecond, 0, 0);
+                    double distance = distanceService.calculateDistance(city1.getLatitude(), city1.getLongitude(), city2.getLatitude(), city2.getLongitude());
+                    Distance newDistance = distanceService.saveDistance(distance, city1, city2);
+                    distances.add(newDistance); // Add the newly saved distance to the list
                 }
+
+                // Add the distance(s) to the result list
                 result.addAll(distances.stream()
                         .map(this::convertToDTO)
                         .toList());

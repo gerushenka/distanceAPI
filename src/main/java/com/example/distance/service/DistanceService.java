@@ -36,16 +36,17 @@ public class DistanceService {
         return earthRadius * c;
     }
 
-    public Distance saveDistance(double distance, City city1, City city2) {
+    public Distance saveDistance(double distance, City cityFirst, City citySecond) {
         Optional<Distance> existingDistance = distanceRepository.findByCityDistance(distance);
 
         if (existingDistance.isPresent()) {
             return existingDistance.get();
         } else {
             Distance newDistance = new Distance();
+
             newDistance.setCityDistance(distance);
-            newDistance.setCity1(city1);
-            newDistance.setCity2(city2);
+            newDistance.setCityFirst(cityFirst); // Установка первого города
+            newDistance.setCitySecond(citySecond); // Установка второго города
             return distanceRepository.save(newDistance);
         }
     }

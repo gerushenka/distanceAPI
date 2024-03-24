@@ -14,6 +14,6 @@ public interface DistanceRepository extends CrudRepository<Distance, Long>{
     Optional<Distance> findByCityDistance(double cityDistance);
     List<Distance> findByCityFirstOrCitySecond(City cityFirst, City citySecond);
 
-    @Query("SELECT d FROM Distance d WHERE d.cityFirst.name = :city1Name AND d.citySecond.name = :city2Name")
-    List<Distance> findByCityNames(String city1Name, String city2Name);
+    @Query("SELECT d FROM Distance d WHERE d.cityFirst.name = :cityFirst AND d.citySecond.name = :citySecond")
+    List<Distance> findByCityNames(String cityFirst, String citySecond);
 }
