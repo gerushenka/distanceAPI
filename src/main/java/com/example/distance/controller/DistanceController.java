@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.distance.config.CacheConfig;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +27,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/distance")
 public class DistanceController {
+    private static final int cacheSIZE = 5;
 
     @Autowired
-    private Map<String, Double> distanceCache;
+    private CacheConfig cache;
+
 
     @Value("${geoname.api-key}")
     private String apiKey;
@@ -152,14 +154,15 @@ public class DistanceController {
         }
 
         List<DistanceDTO> result = new ArrayList<>();
+        Map<String, Double> distanceCache = cache.distanceCache();
 
         for (int i = 0; i < cityFirstList.size(); i++) {
             String cityFirst = cityFirstList.get(i);
             String citySecond = citySecondList.get(i);
             String key = generateCacheKey(cityFirst, citySecond);
 
-            if (distanceCache != null && distanceCache.containsKey(key)) {
-                // Distance is cached, return it directly
+            if (distanceCache.containsKey(key)) {
+                // Cache hit, retrieve distance from cache
                 double distance = distanceCache.get(key);
                 DistanceDTO dto = new DistanceDTO();
                 dto.setCityFirst(cityFirst);
@@ -167,36 +170,36 @@ public class DistanceController {
                 dto.setCityDistance(distance);
                 result.add(dto);
             } else {
-                // Distance is not cached, query the database
+                // Cache miss, calculate distance and add to cache with eviction
                 List<Distance> distances = distanceService.getDistancesByCityNames(cityFirst, citySecond);
-
                 if (distances.isEmpty()) {
-                    // Distance not found in the database, calculate and save it
-                    City city1 = cityService.saveCity(cityFirst, 0, 0); // Assuming latitude and longitude are not provided
+                    City city1 = cityService.saveCity(cityFirst, 0, 0);
                     City city2 = cityService.saveCity(citySecond, 0, 0);
                     double distance = distanceService.calculateDistance(city1.getLatitude(), city1.getLongitude(), city2.getLatitude(), city2.getLongitude());
                     Distance newDistance = distanceService.saveDistance(distance, city1, city2);
-                    distances.add(newDistance); // Add the newly saved distance to the list
+                    distances.add(newDistance);
                 }
 
-                // Add the distance(s) to the result list
+                for (Distance distance : distances) {
+                    cache.putWithEviction(key, distance.getCityDistance(), cacheSIZE); // Use putWithEviction to manage cache size
+                }
+
                 result.addAll(distances.stream()
                         .map(this::convertToDTO)
                         .toList());
             }
         }
 
+        viewCacheContents(distanceCache);
         return ResponseEntity.ok(result);
     }
-
 
     private String generateCacheKey(String cityFirst, String citySecond) {
         return cityFirst + "_" + citySecond;
     }
 
-    public void viewCacheContents() {
+    public void viewCacheContents( Map<String, Double> distanceCache) {
         logger.info("Cache Contents:");
         distanceCache.forEach((key, value) -> logger.info(String.format("%s : %s", key, value)));
     }
-
 }
