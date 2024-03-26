@@ -27,7 +27,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/distance")
 public class DistanceController {
-    private static final int cacheSIZE = 5;
+    private static final int CACHESIZE = 5;
 
     @Autowired
     private CacheConfig cache;
@@ -181,7 +181,7 @@ public class DistanceController {
                 }
 
                 for (Distance distance : distances) {
-                    cache.putWithEviction(key, distance.getCityDistance(), cacheSIZE); // Use putWithEviction to manage cache size
+                    cache.putWithEviction(key, distance.getCityDistance(), CACHESIZE); // Use putWithEviction to manage cache size
                 }
 
                 result.addAll(distances.stream()
