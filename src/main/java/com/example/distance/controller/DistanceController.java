@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import com.example.distance.service.DistanceService;
@@ -36,6 +37,9 @@ public class DistanceController {
     @Value("${geoname.api-key}")
     private String apiKey;
 
+    @Value("${geoname}")
+    private String geoname;
+
     private final RestTemplate restTemplate;
     private final DistanceService distanceService;
     private final CityService cityService;
@@ -50,6 +54,10 @@ public class DistanceController {
 
     @GetMapping("/calculate")
     public ResponseEntity calculateDistance(@RequestParam String cityFirst, @RequestParam String citySecond) {
+        logger.info("Received GET request to /distance/calculate with parameters cityFirst={}, citySecond={}", cityFirst, citySecond);
+        if (cityFirst == null || citySecond == null) {
+            return ResponseEntity.badRequest().body("Both 'cityFirst' and 'citySecond' parameters are required");
+        }
 
         String url1 = "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
         String url2 = "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
@@ -62,32 +70,41 @@ public class DistanceController {
             JsonNode node1 = objectMapper.readTree(jsonResponse1);
             JsonNode node2 = objectMapper.readTree(jsonResponse2);
 
+            if (node1.has(geoname) && node2.has(geoname)) {
+                JsonNode geonames1 = node1.get(geoname);
+                JsonNode geonames2 = node2.get(geoname);
 
-            String geonames = "geonames";
-            double lat1 = Double.parseDouble(node1.path(geonames).get(0).path("lat").asText());
-            double lng1 = Double.parseDouble(node1.path(geonames).get(0).path("lng").asText());
-            double lat2 = Double.parseDouble(node2.path(geonames).get(0).path("lat").asText());
-            double lng2 = Double.parseDouble(node2.path(geonames).get(0).path("lng").asText());
+                if (geonames1.isArray() && geonames2.isArray() && geonames1.size() > 0 && geonames2.size() > 0) {
+                    double lat1 = Double.parseDouble(geonames1.get(0).path("lat").asText());
+                    double lng1 = Double.parseDouble(geonames1.get(0).path("lng").asText());
+                    double lat2 = Double.parseDouble(geonames2.get(0).path("lat").asText());
+                    double lng2 = Double.parseDouble(geonames2.get(0).path("lng").asText());
 
-            City city1 = cityService.saveCity(cityFirst, lat1, lng1);
-            City city2 = cityService.saveCity(citySecond, lat2, lng2);
+                    City city1 = cityService.saveCity(cityFirst, lat1, lng1);
+                    City city2 = cityService.saveCity(citySecond, lat2, lng2);
 
-            double distance = distanceService.calculateDistance(lat1, lng1, lat2, lng2);
-            DecimalFormat df = new DecimalFormat("#.##");
-            distanceService.saveDistance(distance, city1, city2);
-            String formattedDistance = df.format(distance);
-            ObjectNode responseJson = objectMapper.createObjectNode();
-            responseJson.put("cityFirst", cityFirst);
-            responseJson.put("citySecond", citySecond);
-            responseJson.put("distance_km", formattedDistance);
-            return ResponseEntity.ok(responseJson);
+                    double distance = distanceService.calculateDistance(lat1, lng1, lat2, lng2);
+                    DecimalFormat df = new DecimalFormat("#.##");
+                    distanceService.saveDistance(distance, city1, city2);
+                    String formattedDistance = df.format(distance);
+                    ObjectNode responseJson = objectMapper.createObjectNode();
+                    responseJson.put("cityFirst", cityFirst);
+                    responseJson.put("citySecond", citySecond);
+                    responseJson.put("distance_km", formattedDistance);
+                    return ResponseEntity.ok(responseJson);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error parsing JSON response: geonames array is missing or empty");
         } catch (JsonProcessingException e) {
-            return ResponseEntity.badRequest().body("Ошибка при обработке JSON");
+            return ResponseEntity.badRequest().body("Error processing JSON");
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Error parsing latitude or longitude");
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<DistanceDTO> getDistance(@PathVariable Long id) {
+        logger.info("Received GET request to /distance/{}", id);
         Optional<Distance> distanceEntityOptional = distanceService.getDistanceById(id);
         if (distanceEntityOptional.isPresent()) {
             Distance distance = distanceEntityOptional.get();
@@ -123,12 +140,14 @@ public class DistanceController {
 
     @PostMapping
     public ResponseEntity<Distance> createDistance(@RequestBody Distance distance) {
+        logger.info("Received POST request to /distance with body: {}", distance);
         Distance createdDistance = distanceService.createDistance(distance);
         return ResponseEntity.ok(createdDistance);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Distance> updateDistance(@PathVariable Long id, @RequestBody Distance distance) {
+        logger.info("Received PUT request to /distance/{} with body: {}", id, distance);
         Distance updatedDistance = distanceService.updateDistance(id, distance);
         if (updatedDistance != null) {
             return ResponseEntity.ok(updatedDistance);
@@ -139,6 +158,7 @@ public class DistanceController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Distance> deleteDistance(@PathVariable Long id) {
+        logger.info("Received DELETE request to /distance/{}", id);
         boolean deleted = distanceService.deleteDistance(id);
         if (deleted) {
             return ResponseEntity.ok().build();
@@ -149,6 +169,7 @@ public class DistanceController {
 
     @GetMapping("/city-to-city")
     public ResponseEntity<List<DistanceDTO>> getDistancesByCityNames(@RequestParam List<String> cityFirstList, @RequestParam List<String> citySecondList) {
+        logger.info("Received GET request to /distance/city-to-city with parameters cityFirstList={}, citySecondList={}", cityFirstList, citySecondList);
         if (cityFirstList.size() != citySecondList.size()) {
             return ResponseEntity.badRequest().build();
         }
@@ -162,7 +183,6 @@ public class DistanceController {
             String key = generateCacheKey(cityFirst, citySecond);
 
             if (distanceCache.containsKey(key)) {
-                // Cache hit, retrieve distance from cache
                 double distance = distanceCache.get(key);
                 DistanceDTO dto = new DistanceDTO();
                 dto.setCityFirst(cityFirst);
@@ -170,7 +190,6 @@ public class DistanceController {
                 dto.setCityDistance(distance);
                 result.add(dto);
             } else {
-                // Cache miss, calculate distance and add to cache with eviction
                 List<Distance> distances = distanceService.getDistancesByCityNames(cityFirst, citySecond);
                 if (distances.isEmpty()) {
                     City city1 = cityService.saveCity(cityFirst, 0, 0);
@@ -179,9 +198,8 @@ public class DistanceController {
                     Distance newDistance = distanceService.saveDistance(distance, city1, city2);
                     distances.add(newDistance);
                 }
-
                 for (Distance distance : distances) {
-                    cache.putWithEviction(key, distance.getCityDistance(), CACHESIZE); // Use putWithEviction to manage cache size
+                    cache.putWithEviction(key, distance.getCityDistance(), CACHESIZE);
                 }
 
                 result.addAll(distances.stream()

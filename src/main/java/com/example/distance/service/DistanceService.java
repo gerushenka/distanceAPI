@@ -45,8 +45,8 @@ public class DistanceService {
             Distance newDistance = new Distance();
 
             newDistance.setCityDistance(distance);
-            newDistance.setCityFirst(cityFirst); // Установка первого города
-            newDistance.setCitySecond(citySecond); // Установка второго города
+            newDistance.setCityFirst(cityFirst);
+            newDistance.setCitySecond(citySecond);
             return distanceRepository.save(newDistance);
         }
     }
@@ -77,11 +77,9 @@ public class DistanceService {
         }
     }
     public List<Distance> getDistancesByCityNames(String city1Name, String city2Name) {
-        // Получаем города по их названиям
         City city1 = cityRepository.findByName(city1Name);
         City city2 = cityRepository.findByName(city2Name);
 
-        // Поиск расстояний по городам
         return distanceRepository.findByCityNames(city1.getName(), city2.getName());
     }
 }
