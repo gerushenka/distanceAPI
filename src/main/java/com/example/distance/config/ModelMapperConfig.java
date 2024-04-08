@@ -10,13 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ModelMapperConfig {
 
-    /**
-     * Создает и возвращает экземпляр ModelMapper.
-     *
-     * @return экземпляр ModelMapper
-     */
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
+  /**
+   * Создает и возвращает экземпляр ModelMapper.
+   *
+   * @return экземпляр ModelMapper
+   */
+  @Bean
+  public ModelMapper modelMapper() {
+    return new ModelMapper();
+  }
 }

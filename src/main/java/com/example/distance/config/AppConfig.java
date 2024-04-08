@@ -12,13 +12,13 @@ import org.springframework.web.client.RestTemplate;
 @ControllerAdvice
 public class AppConfig {
 
-    /**
-     * Создает и возвращает новый экземпляр RestTemplate.
-     *
-     * @return новый экземпляр RestTemplate
-     */
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
+  /**
+   * Создает и возвращает новый экземпляр RestTemplate.
+   *
+   * @return новый экземпляр RestTemplate
+   */
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
+  }
 }
