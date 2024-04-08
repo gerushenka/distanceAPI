@@ -189,10 +189,6 @@ public class DistanceController {
   @GetMapping("/city-to-city")
   public ResponseEntity<List<DistanceDto>> getDistancesByCityNames(
       @RequestParam List<String> cityFirstList, @RequestParam List<String> citySecondList) {
-    logger.info(
-        "Received GET request to /distance/city-to-city with parameters "
-            + "cityFirstList={}, citySecondList={}",
-        cityFirstList, citySecondList);
     if (cityFirstList.size() != citySecondList.size()) {
       return ResponseEntity.badRequest().build();
     }
