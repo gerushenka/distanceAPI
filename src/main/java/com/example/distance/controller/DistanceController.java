@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,6 @@ import org.springframework.web.client.RestTemplate;
 public class DistanceController {
   private static final int CACHESIZE = 5;
 
-  @Autowired
   private CacheConfig cache;
 
 
@@ -55,18 +53,17 @@ public class DistanceController {
   private static final Logger logger = LoggerFactory.getLogger(DistanceController.class);
 
   public DistanceController(RestTemplate restTemplate, DistanceService distanceService,
-                            CityService cityService) {
+                            CityService cityService, CacheConfig cache) {
     this.restTemplate = restTemplate;
     this.distanceService = distanceService;
     this.cityService = cityService;
+    this.cache = cache;
   }
 
   @GetMapping("/calculate")
   public ResponseEntity calculateDistance(@RequestParam String cityFirst,
                                           @RequestParam String citySecond) {
-    logger.info(
-        "Received GET request to /distance/calculate with parameters cityFirst={}, citySecond={}",
-        cityFirst, citySecond);
+
     if (cityFirst == null || citySecond == null) {
       return ResponseEntity.badRequest()
           .body("Both 'cityFirst' and 'citySecond' parameters are required");
