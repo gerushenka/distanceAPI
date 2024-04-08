@@ -11,6 +11,32 @@ checkstyle {
 	toolVersion '10.14.0'
 }
 
+jacocoTestReport {
+	reports {
+		xml.required = true
+	}
+}
+
+jacoco {
+	toolVersion = "0.8.7"
+}
+
+test {
+	useJUnitPlatform()
+	jacoco {
+		enabled = true
+	}
+}
+
+sonar {
+	properties {
+		property "sonar.projectKey", "gerushenka_jaba"
+		property "sonar.organization", "gerushenka"
+		property "sonar.host.url", "https://sonarcloud.io"
+		property "sonar.token", System.getenv("SONAR_SECRET")
+	}
+}
+
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
