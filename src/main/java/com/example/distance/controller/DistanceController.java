@@ -61,18 +61,17 @@ public class DistanceController {
   }
 
   @GetMapping("/calculate")
-  public ResponseEntity calculateDistance(@RequestParam String cityFirst,
-                                          @RequestParam String citySecond) {
-
+  public ResponseEntity<ObjectNode> calculateDistance(@RequestParam String cityFirst,
+                                                      @RequestParam String citySecond) {
     if (cityFirst == null || citySecond == null) {
       return ResponseEntity.badRequest()
-          .body("Both 'cityFirst' and 'citySecond' parameters are required");
+              .body(createErrorResponse("Both 'cityFirst' and 'citySecond' parameters are required"));
     }
 
     String url1 =
-        "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
+            "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
     String url2 =
-        "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
+            "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
     String jsonResponse1 = restTemplate.getForObject(url1, String.class);
     String jsonResponse2 = restTemplate.getForObject(url2, String.class);
 
@@ -87,7 +86,7 @@ public class DistanceController {
         JsonNode geonames2 = node2.get(geoname);
 
         if (geonames1.isArray() && geonames2.isArray() && geonames1.size() > 0
-            && geonames2.size() > 0) {
+                && geonames2.size() > 0) {
           double lat1 = Double.parseDouble(geonames1.get(0).path("lat").asText());
           double lng1 = Double.parseDouble(geonames1.get(0).path("lng").asText());
           double lat2 = Double.parseDouble(geonames2.get(0).path("lat").asText());
@@ -108,14 +107,19 @@ public class DistanceController {
         }
       }
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body("Error parsing JSON response: geonames array is missing or empty");
+              .body(createErrorResponse("Error parsing JSON response: geonames array is missing or empty"));
     } catch (JsonProcessingException e) {
-      return ResponseEntity.badRequest().body("Error processing JSON");
+      return ResponseEntity.badRequest().body(createErrorResponse("Error processing JSON"));
     } catch (NumberFormatException e) {
-      return ResponseEntity.badRequest().body("Error parsing latitude or longitude");
+      return ResponseEntity.badRequest().body(createErrorResponse("Error parsing latitude or longitude"));
     }
   }
-
+  private ObjectNode createErrorResponse(String message) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode errorResponse = objectMapper.createObjectNode();
+    errorResponse.put("error", message);
+    return errorResponse;
+  }
   @GetMapping("/{id}")
   public ResponseEntity<DistanceDto> getDistance(@PathVariable Long id) {
     logger.info("Received GET request to /distance/{}", id);
