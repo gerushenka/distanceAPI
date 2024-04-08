@@ -1,7 +1,14 @@
 plugins {
+	id "org.sonarqube" version "4.4.1.3373"
+	id 'jacoco'
 	id 'java'
 	id 'org.springframework.boot' version '3.2.3'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id 'checkstyle'
+}
+
+checkstyle {
+	toolVersion '10.14.0'
 }
 
 group = 'com.example'
@@ -16,6 +23,11 @@ repositories {
 }
 
 dependencies {
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+	testImplementation 'org.mockito:mockito-core:3.12.4'
+	testImplementation "junit:junit:4.12"
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
@@ -23,6 +35,17 @@ dependencies {
 	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'org.modelmapper:modelmapper:2.4.4'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	//SWAGGER
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+	implementation 'io.springfox:springfox-swagger2:3.0.0'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
 }
 
 tasks.named('test') {
