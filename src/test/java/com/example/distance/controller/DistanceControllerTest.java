@@ -1,8 +1,6 @@
 package com.example.distance.controller;
 
 import com.example.distance.config.CacheConfig;
-import com.example.distance.dto.DistanceDto;
-import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
 import com.example.distance.service.CityService;
 import com.example.distance.service.DistanceService;
@@ -15,11 +13,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;

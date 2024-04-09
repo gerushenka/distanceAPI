@@ -1,5 +1,6 @@
 package com.example.distance.config;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -35,9 +36,12 @@ public class CacheConfig {
    */
   public void putWithEviction(String key, Double value, int maxCapacity) {
     if (distanceCache.size() >= maxCapacity) {
-      String oldestKey = distanceCache.keySet().iterator().next();
-      distanceCache.remove(oldestKey);
-      logger.info("Evicted from cache: {}", oldestKey);
+      Iterator<Map.Entry<String, Double>> iterator = distanceCache.entrySet().iterator();
+      if (iterator.hasNext()) {
+        Map.Entry<String, Double> oldestEntry = iterator.next();
+        distanceCache.remove(oldestEntry.getKey());
+        logger.info("Evicted from cache: {}", oldestEntry.getKey());
+      }
     }
     logger.info("Adding to cache: {}:{}", key, value);
     distanceCache.put(key, value);
