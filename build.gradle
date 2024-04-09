@@ -1,40 +1,48 @@
 plugins {
-	id "org.sonarqube" version "4.4.1.3373"
-	id 'jacoco'
 	id 'java'
-	id 'org.springframework.boot' version '3.2.3'
-	id 'io.spring.dependency-management' version '1.1.4'
+	id 'jacoco'
 	id 'checkstyle'
+	id "org.sonarqube" version "4.4.1.3373"
+	id 'org.springframework.boot' version '3.2.2'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+	targetCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
 
 dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
 	testImplementation 'org.mockito:mockito-core:3.12.4'
 	testImplementation "junit:junit:4.12"
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	implementation 'org.modelmapper:modelmapper:2.4.4'
-	compileOnly 'org.projectlombok:lombok:1.18.30'
-	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	testCompileOnly 'org.projectlombok:lombok:1.18.30'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
-
-	//SWAGGER
+	//Swagger dependencies
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
 	implementation 'io.springfox:springfox-swagger2:3.0.0'
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
-}
-checkstyle {
-	toolVersion '10.14.0'
+
+	implementation 'mysql:mysql-connector-java:8.0.30'
+	implementation 'org.projectlombok:lombok:1.18.30'
+	implementation 'joda-time:joda-time:2.2'
+	runtimeOnly 'mysql:mysql-connector-java'
+	implementation 'org.json:json:20240303'
+
+
 }
 
 test {
@@ -54,27 +62,15 @@ jacocoTestReport {
 	}
 }
 
+checkstyle {
+	toolVersion '10.14.0'
+}
 
 sonar {
 	properties {
 		property "sonar.projectKey", "gerushenka_jaba"
 		property "sonar.organization", "gerushenka"
 		property "sonar.host.url", "https://sonarcloud.io"
-		property "sonar.token", System.getenv("SONAR_SECRET")
+		property "sonar.token", "7b0f35ea295fba93e400e6ed447f74fa5cfecf3f"
 	}
-}
-
-group = 'com.example'
-version = '0.0.1-SNAPSHOT'
-
-java {
-	sourceCompatibility = '17'
-}
-
-repositories {
-	mavenCentral()
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
 }
