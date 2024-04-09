@@ -68,12 +68,16 @@ public class DistanceController {
               .body(createErrorResponse("Both 'cityFirst' and 'citySecond' parameters are required"));
     }
 
-    String url1 =
-            "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
-    String url2 =
-            "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
+    String url1 = "http://api.geonames.org/searchJSON?q=" + cityFirst + "&maxRows=1&username=" + apiKey;
+    String url2 = "http://api.geonames.org/searchJSON?q=" + citySecond + "&maxRows=1&username=" + apiKey;
     String jsonResponse1 = restTemplate.getForObject(url1, String.class);
     String jsonResponse2 = restTemplate.getForObject(url2, String.class);
+
+    // Check if either of the responses is null
+    if (jsonResponse1 == null || jsonResponse2 == null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+              .body(createErrorResponse("Error getting data from Geonames API"));
+    }
 
     try {
       ObjectMapper objectMapper = new ObjectMapper();
