@@ -3,11 +3,11 @@ package com.example.distance.controller;
 import com.example.distance.dto.CityDto;
 import com.example.distance.entity.City;
 import com.example.distance.service.CityService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,6 +16,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CityControllerTest {
 
     @Mock
@@ -23,11 +24,6 @@ class CityControllerTest {
 
     @InjectMocks
     private CityController cityController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     void testCreateCity() {
