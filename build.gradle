@@ -68,15 +68,11 @@ checkstyle {
 	toolVersion '10.14.0'
 }
 
-sonarqube {
+sonar {
 	properties {
-		property 'sonar.projectKey', 'gerushenka_jaba'
-		property 'sonar.projectName', 'jaba'
-		property 'sonar.sources', 'src/main/java'
-		property 'sonar.tests', 'src/test/java'
-		property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
-		property 'sonar.java.binaries', 'build/classes/java/main'
-		property 'sonar.java.test.binaries', 'build/classes/java/test'
+		property "sonar.projectKey", "gerushenka_jaba"
+		property "sonar.organization", "gerushenka"
+		property "sonar.host.url", "https://sonarcloud.io"
+		property "sonar.token", "bbbf268db431e009a6983b3b588288e93cb91b77"
 	}
 }
-
