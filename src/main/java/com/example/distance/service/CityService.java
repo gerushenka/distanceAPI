@@ -5,9 +5,9 @@ import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
 import com.example.distance.repository.CityRepository;
 import com.example.distance.repository.DistanceRepository;
+import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Service;
 
 @Service
 public class CityService {
@@ -15,7 +15,6 @@ public class CityService {
   private final DistanceRepository distanceRepository;
 
   public CityService(CityRepository cityRepository, DistanceRepository distanceRepository) {
-
     this.cityRepository = cityRepository;
     this.distanceRepository = distanceRepository;
   }
@@ -35,11 +34,17 @@ public class CityService {
   }
 
   public City createCity(CityDto cityDto) {
-    City city = new City();
-    city.setName(cityDto.getName());
-    city.setLatitude(cityDto.getLatitude());
-    city.setLongitude(cityDto.getLongitude());
-    return cityRepository.save(city);
+    City existingCity = cityRepository.findByName(cityDto.getName());
+
+    if (existingCity != null) {
+      return existingCity; // Возвращаем существующий город, если он найден
+    } else {
+      City city = new City();
+      city.setName(cityDto.getName());
+      city.setLatitude(cityDto.getLatitude());
+      city.setLongitude(cityDto.getLongitude());
+      return cityRepository.save(city);
+    }
   }
 
   public Optional<City> getCityById(Long id) {
@@ -47,9 +52,13 @@ public class CityService {
   }
 
   public City updateCity(Long id, City updatedCity) {
-    if (cityRepository.existsById(id)) {
-      updatedCity.setId(id);
-      return cityRepository.save(updatedCity);
+    Optional<City> existingCityOptional = cityRepository.findById(id);
+    if (existingCityOptional.isPresent()) {
+      City existingCity = existingCityOptional.get();
+      existingCity.setName(updatedCity.getName());
+      existingCity.setLatitude(updatedCity.getLatitude());
+      existingCity.setLongitude(updatedCity.getLongitude());
+      return cityRepository.save(existingCity);
     } else {
       return null;
     }
@@ -62,11 +71,8 @@ public class CityService {
       List<Distance> relatedDistances = distanceRepository.findByCityFirstOrCitySecond(city, city);
       distanceRepository.deleteAll(relatedDistances);
       cityRepository.delete(city);
-
-
       return true;
     }
     return false;
   }
-
 }
