@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/distance
+      SPRING_DATASOURCE_USERNAME: ${SQL_LOGIN}
+      SPRING_DATASOURCE_PASSWORD: ${SQL_PASS}
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0.27
+    environment:
+      DATABASE_HOST: docker-mysql
+      DATABASE_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${SQL_PASS}
+      MYSQL_DATABASE: distance
+    command: --default-authentication-plugin=mysql_native_password
