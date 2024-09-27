@@ -1,21 +1,29 @@
 package com.example.distance.config;
 
-import com.example.distance.config.AppConfig;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = AppConfig.class)
 class AppConfigTest {
 
-    @MockBean
-    private RestTemplate restTemplate;
-
     @Test
-    void testRestTemplateBean() {
-        assertNotNull(restTemplate);
+    void restTemplateBeanTest() {
+        // Создаем контекст приложения с конфигурацией AppConfig
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+        // Проверяем, что бин RestTemplate создан и доступен
+        assertTrue(context.containsBean("restTemplate"));
+        assertNotNull(context.getBean("restTemplate"));
+
+        // Получаем бин RestTemplate
+        RestTemplate restTemplate = context.getBean(RestTemplate.class);
+
+        // Проверяем, что полученный бин является экземпляром RestTemplate
+        assertTrue(restTemplate instanceof RestTemplate);
+
+        // Закрываем контекст приложения
+        context.close();
     }
 }

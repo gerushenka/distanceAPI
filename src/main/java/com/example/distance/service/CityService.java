@@ -5,6 +5,7 @@ import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
 import com.example.distance.repository.CityRepository;
 import com.example.distance.repository.DistanceRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -74,5 +75,22 @@ public class CityService {
       return true;
     }
     return false;
+  }
+
+
+  @Transactional
+  public List<City> createCitiesBulk(List<CityDto> cityDtos) {
+    return cityDtos.stream()
+            .map(this::convertToEntity)
+            .map(cityRepository::save)
+            .toList();
+  }
+
+  private City convertToEntity(CityDto cityDto) {
+    City city = new City();
+    city.setName(cityDto.getName());
+    city.setLatitude(cityDto.getLatitude());
+    city.setLongitude(cityDto.getLongitude());
+    return city;
   }
 }

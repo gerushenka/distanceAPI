@@ -6,6 +6,7 @@ import com.example.distance.entity.City;
 import com.example.distance.entity.Distance;
 import com.example.distance.service.CityService;
 import com.example.distance.service.DistanceService;
+import com.example.distance.service.RequestCounterService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +51,7 @@ public class DistanceController {
   private final DistanceService distanceService;
   private final CityService cityService;
 
+
   private static final Logger logger = LoggerFactory.getLogger(DistanceController.class);
 
   public DistanceController(RestTemplate restTemplate, DistanceService distanceService,
@@ -58,6 +60,7 @@ public class DistanceController {
     this.distanceService = distanceService;
     this.cityService = cityService;
     this.cache = cache;
+
   }
 
   @GetMapping("/calculate")
@@ -124,8 +127,13 @@ public class DistanceController {
     errorResponse.put("error", message);
     return errorResponse;
   }
+
+
   @GetMapping("/{id}")
   public ResponseEntity<DistanceDto> getDistance(@PathVariable Long id) {
+
+    RequestCounterService.incrementCount();
+
     logger.info("Received GET request to /distance/{}", id);
     Optional<Distance> distanceEntityOptional = distanceService.getDistanceById(id);
     if (distanceEntityOptional.isPresent()) {
@@ -142,23 +150,25 @@ public class DistanceController {
     dto.setId(distance.getId());
     dto.setCityDistance(distance.getCityDistance());
 
-    Optional<City> cityFirstOptional = cityService.getCityById(distance.getCityFirst().getId());
-    Optional<City> citySecondOptional = cityService.getCityById(distance.getCitySecond().getId());
-
-    if (cityFirstOptional.isPresent() && citySecondOptional.isPresent()) {
-      String cityFirst = cityFirstOptional.get().getName();
-      String citySecond = citySecondOptional.get().getName();
-
-      dto.setCityFirst(cityFirst);
-      dto.setCitySecond(citySecond);
+    // Проверяем, есть ли значение для cityFirst
+    if (distance.getCityFirst() != null) {
+      Optional<City> cityFirstOptional = cityService.getCityById(distance.getCityFirst().getId());
+      cityFirstOptional.ifPresent(cityFirst -> dto.setCityFirst(cityFirst.getName()));
     } else {
-
       dto.setCityFirst("Unknown");
+    }
+
+    // Проверяем, есть ли значение для citySecond
+    if (distance.getCitySecond() != null) {
+      Optional<City> citySecondOptional = cityService.getCityById(distance.getCitySecond().getId());
+      citySecondOptional.ifPresent(citySecond -> dto.setCitySecond(citySecond.getName()));
+    } else {
       dto.setCitySecond("Unknown");
     }
 
     return dto;
   }
+
 
   @PostMapping
   public ResponseEntity<Distance> createDistance(@RequestBody Distance distance) {
@@ -237,12 +247,19 @@ public class DistanceController {
     return ResponseEntity.ok(result);
   }
 
-  private String generateCacheKey(String cityFirst, String citySecond) {
+  public String generateCacheKey(String cityFirst, String citySecond) {
     return cityFirst + "_" + citySecond;
   }
 
   public void viewCacheContents(Map<String, Double> distanceCache) {
     logger.info("Cache Contents:");
     distanceCache.forEach((key, value) -> logger.info(String.format("%s : %s", key, value)));
+  }
+
+
+  @GetMapping("/request-count")
+  public ResponseEntity<Integer> getRequestCount() {
+    int count = RequestCounterService.getCount();
+    return ResponseEntity.ok(count);
   }
 }

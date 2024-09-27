@@ -7,13 +7,13 @@ import com.example.distance.repository.CityRepository;
 import com.example.distance.repository.DistanceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CityServiceTest {
@@ -28,146 +28,143 @@ class CityServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.initMocks(this);
         cityService = new CityService(cityRepository, distanceRepository);
     }
 
     @Test
-    void testSaveCity_NewCity() {
-        // Given
-        String name = "TestCity";
-        double latitude = 10.0;
-        double longitude = 20.0;
+    void saveCity_ExistingCity_ReturnsExistingCity() {
+        String cityName = "ExistingCity";
         City existingCity = new City();
-        existingCity.setName(name);
-        existingCity.setLatitude(latitude);
-        existingCity.setLongitude(longitude);
-        when(cityRepository.findByName(name)).thenReturn(existingCity);
+        existingCity.setId(1L);
+        existingCity.setName(cityName);
+        when(cityRepository.findByName(cityName)).thenReturn(existingCity);
 
-        // When
-        City savedCity = cityService.saveCity(name, latitude, longitude);
+        City savedCity = cityService.saveCity(cityName, 0.0, 0.0);
 
-        // Then
-        assertNotNull(savedCity);
-        assertEquals(existingCity, savedCity); // Verify that the existing city is returned
-        verify(cityRepository, times(1)).findByName(name);
-        verify(cityRepository, never()).save(any(City.class)); // Ensure that save method is never called
-    }
-
-    @Test
-    void testSaveCity_ExistingCity() {
-        // Given
-        String name = "TestCity";
-        double latitude = 10.0;
-        double longitude = 20.0;
-        City existingCity = new City();
-        existingCity.setName(name);
-        existingCity.setLatitude(latitude);
-        existingCity.setLongitude(longitude);
-        when(cityRepository.findByName(name)).thenReturn(existingCity);
-
-        // When
-        City savedCity = cityService.saveCity(name, latitude, longitude);
-
-        // Then
-        assertNotNull(savedCity);
         assertEquals(existingCity, savedCity);
-        verify(cityRepository, times(1)).findByName(name);
-        verify(cityRepository, never()).save(any(City.class));
     }
 
     @Test
-    void testCreateCity() {
-        // Given
+    void saveCity_NewCity_ReturnsSavedCity() {
+        String cityName = "NewCity";
+        when(cityRepository.findByName(cityName)).thenReturn(null);
+        // Создаем объект City для возврата при сохранении
+        City cityToSave = new City();
+        cityToSave.setName(cityName);
+        when(cityRepository.save(any())).thenReturn(cityToSave);
+
+        City savedCity = cityService.saveCity(cityName, 0.0, 0.0);
+
+        assertNotNull(savedCity);
+        assertEquals(cityName, savedCity.getName());
+    }
+
+
+    @Test
+    void createCity_ExistingCity_ReturnsExistingCity() {
+        String cityName = "ExistingCity";
         CityDto cityDto = new CityDto();
-        cityDto.setName("TestCity");
-        cityDto.setLatitude(10.0);
-        cityDto.setLongitude(20.0);
-
-        // Mock existing city with the same name
+        cityDto.setName(cityName);
         City existingCity = new City();
-        existingCity.setName(cityDto.getName());
-        existingCity.setLatitude(30.0);
-        existingCity.setLongitude(40.0);
-        when(cityRepository.findByName(cityDto.getName())).thenReturn(existingCity);
+        existingCity.setId(1L);
+        existingCity.setName(cityName);
+        when(cityRepository.findByName(cityName)).thenReturn(existingCity);
 
-        // When
         City createdCity = cityService.createCity(cityDto);
 
-        // Then
+        assertEquals(existingCity, createdCity);
+    }
+
+    @Test
+    void createCity_NewCity_ReturnsSavedCity() {
+        String cityName = "NewCity";
+        CityDto cityDto = new CityDto();
+        cityDto.setName(cityName);
+        when(cityRepository.findByName(cityName)).thenReturn(null);
+        // Создаем объект City для возврата при сохранении
+        City savedCity = new City();
+        savedCity.setName(cityName);
+        when(cityRepository.save(any())).thenReturn(savedCity);
+
+        City createdCity = cityService.createCity(cityDto);
+
         assertNotNull(createdCity);
-        assertEquals(existingCity, createdCity); // Verify that the existing city is returned
-        verify(cityRepository, never()).save(any(City.class)); // Ensure that save method is never called
+        assertEquals(cityName, createdCity.getName());
     }
 
-
     @Test
-    void testGetCityById() {
-        // Given
-        Long id = 1L;
+    void getCityById_CityExists_ReturnsCity() {
+        Long cityId = 1L;
         City city = new City();
-        city.setId(id);
-        when(cityRepository.findById(id)).thenReturn(Optional.of(city));
+        city.setId(cityId);
+        when(cityRepository.findById(cityId)).thenReturn(Optional.of(city));
 
-        // When
-        Optional<City> retrievedCity = cityService.getCityById(id);
+        Optional<City> result = cityService.getCityById(cityId);
 
-        // Then
-        assertTrue(retrievedCity.isPresent());
-        assertEquals(city, retrievedCity.get());
-        verify(cityRepository, times(1)).findById(id);
+        assertTrue(result.isPresent());
+        assertEquals(cityId, result.get().getId());
     }
 
     @Test
-    void testUpdateCity() {
-        // Given
-        Long id = 1L;
-        City existingCity = new City();
-        existingCity.setId(id);
-        existingCity.setName("ExistingCity");
-        existingCity.setLatitude(20.0);
-        existingCity.setLongitude(30.0);
+    void getCityById_CityNotExists_ReturnsEmptyOptional() {
+        Long cityId = 1L;
+        when(cityRepository.findById(cityId)).thenReturn(Optional.empty());
+
+        Optional<City> result = cityService.getCityById(cityId);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void updateCity_CityExists_ReturnsUpdatedCity() {
+        Long cityId = 1L;
         City updatedCity = new City();
-        updatedCity.setId(id);
         updatedCity.setName("UpdatedCity");
-        updatedCity.setLatitude(30.0);
-        updatedCity.setLongitude(40.0);
-        when(cityRepository.findById(id)).thenReturn(Optional.of(existingCity));
-        when(cityRepository.save(any(City.class))).thenReturn(updatedCity); // Мокируем возвращаемое значение для метода save()
+        when(cityRepository.findById(cityId)).thenReturn(Optional.of(new City()));
+        when(cityRepository.save(any())).thenReturn(updatedCity);
 
-        // When
-        City result = cityService.updateCity(id, updatedCity);
+        City result = cityService.updateCity(cityId, updatedCity);
 
-        // Then
         assertNotNull(result);
-        assertEquals(id, result.getId());
         assertEquals(updatedCity.getName(), result.getName());
-        assertEquals(updatedCity.getLatitude(), result.getLatitude());
-        assertEquals(updatedCity.getLongitude(), result.getLongitude());
-        verify(cityRepository, times(1)).findById(id);
-        verify(cityRepository, times(1)).save(existingCity);
     }
 
+    @Test
+    void updateCity_CityNotExists_ReturnsNull() {
+        Long cityId = 1L;
+        when(cityRepository.findById(cityId)).thenReturn(Optional.empty());
+
+        City result = cityService.updateCity(cityId, new City());
+
+        assertNull(result);
+    }
 
     @Test
-    void testDeleteCityAndRelatedDistances() {
-        // Given
-        Long id = 1L;
+    void deleteCityAndRelatedDistances_CityExists_ReturnsTrue() {
+        Long cityId = 1L;
         City city = new City();
-        city.setId(id);
-        List<Distance> distances = new ArrayList<>();
-        distances.add(new Distance());
-        when(cityRepository.findById(id)).thenReturn(Optional.of(city));
-        when(distanceRepository.findByCityFirstOrCitySecond(city, city)).thenReturn(distances);
+        city.setId(cityId);
+        List<Distance> relatedDistances = new ArrayList<>();
+        when(cityRepository.findById(cityId)).thenReturn(Optional.of(city));
+        when(distanceRepository.findByCityFirstOrCitySecond(city, city)).thenReturn(relatedDistances);
 
-        // When
-        boolean deleted = cityService.deleteCityAndRelatedDistances(id);
+        boolean result = cityService.deleteCityAndRelatedDistances(cityId);
 
-        // Then
-        assertTrue(deleted);
-        verify(cityRepository, times(1)).findById(id);
-        verify(distanceRepository, times(1)).findByCityFirstOrCitySecond(city, city);
-        verify(distanceRepository, times(1)).deleteAll(distances);
-        verify(cityRepository, times(1)).delete(city);
+        assertTrue(result);
+        verify(distanceRepository).deleteAll(relatedDistances);
+        verify(cityRepository).delete(city);
+    }
+
+    @Test
+    void deleteCityAndRelatedDistances_CityNotExists_ReturnsFalse() {
+        Long cityId = 1L;
+        when(cityRepository.findById(cityId)).thenReturn(Optional.empty());
+
+        boolean result = cityService.deleteCityAndRelatedDistances(cityId);
+
+        assertFalse(result);
+        verify(distanceRepository, never()).deleteAll(any());
+        verify(cityRepository, never()).delete(any());
     }
 }

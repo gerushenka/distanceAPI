@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,5 +74,88 @@ class CityControllerTest {
         verify(cityService, times(1)).getCityById(id);
     }
 
-    // Similarly, you can write tests for updateCity() and deleteCity() methods
+    @Test
+    void testDeleteCity() {
+        // Arrange
+        Long id = 1L;
+
+        when(cityService.deleteCityAndRelatedDistances(id)).thenReturn(true);
+
+        // Act
+        ResponseEntity<City> response = cityController.deleteCity(id);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(cityService, times(1)).deleteCityAndRelatedDistances(id);
+    }
+
+    @Test
+    void testUpdateCity() {
+        // Arrange
+        Long id = 1L;
+        City updatedCity = new City();
+        updatedCity.setId(id);
+        updatedCity.setName("Updated City");
+        updatedCity.setLatitude(35.6895);
+        updatedCity.setLongitude(139.6917);
+
+        when(cityService.updateCity(id, updatedCity)).thenReturn(updatedCity);
+
+        // Act
+        ResponseEntity<City> response = cityController.updateCity(id, updatedCity);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(updatedCity, response.getBody());
+        verify(cityService, times(1)).updateCity(id, updatedCity);
+    }
+    @Test
+    void testGetCity_NotFound() {
+        // Arrange
+        Long id = 1L;
+        when(cityService.getCityById(id)).thenReturn(Optional.empty());
+
+        // Act
+        ResponseEntity<CityDto> response = cityController.getCity(id);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(cityService, times(1)).getCityById(id);
+    }
+    @Test
+    void testUpdateCity_NotFound() {
+        // Arrange
+        Long id = 1L;
+        City updatedCity = new City();
+        updatedCity.setId(id);
+        updatedCity.setName("Updated City");
+        updatedCity.setLatitude(35.6895);
+        updatedCity.setLongitude(139.6917);
+
+        when(cityService.updateCity(id, updatedCity)).thenReturn(null);
+
+        // Act
+        ResponseEntity<City> response = cityController.updateCity(id, updatedCity);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(cityService, times(1)).updateCity(id, updatedCity);
+    }
+    @Test
+    void testDeleteCity_NotFound() {
+        // Arrange
+        Long id = 1L;
+        when(cityService.deleteCityAndRelatedDistances(id)).thenReturn(false);
+
+        // Act
+        ResponseEntity<City> response = cityController.deleteCity(id);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(cityService, times(1)).deleteCityAndRelatedDistances(id);
+    }
 }
